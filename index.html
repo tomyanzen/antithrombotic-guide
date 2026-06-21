@@ -33,6 +33,7 @@ body{font-family:'Meiryo','Yu Gothic',sans-serif;background:#f0f4f8;color:#1a1a2
 .rlow{background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7}
 .rhigh{background:#FFEBEE;color:#C62828;border:1px solid #EF9A9A}
 .rmid{background:#FFF8E1;color:#E65100;border:1px solid #FFE082}
+.rexcl{background:#ECEFF1;color:#455A64;border:1px solid #B0BEC5}
 .btn{display:block;width:100%;padding:14px;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;border:none;margin-top:14px;transition:all .15s}
 .btn-p{background:#1F3864;color:white}
 .btn-p:hover{background:#2E75B6}
@@ -96,7 +97,7 @@ const DEPTS={
   '循環器内科':[
     {name:'経食道心エコー',risk:'low'},
     {name:'心臓カテーテル検査（冠動脈造影）',risk:'low'},
-    {name:'経皮的冠動脈インターベンション（PCI）',risk:'high'},
+    {name:'経皮的冠動脈インターベンション（PCI）',risk:'excluded',excludeNote:'PCI（経皮的冠動脈インターベンション）は、周術期に抗血栓療法（DAPT等）の継続・強化が必要な手技であり、本マニュアルの一般原則（高出血リスク→休薬）は適用しません。管理方針は循環器内科の専門プロトコルに従ってください。'},
     {name:'ペースメーカー・ICD植込み術',risk:'high',sp:'pacemaker'},
     {name:'電気的除細動（DC）',risk:'low'},
     {name:'心筋生検',risk:'high'},
@@ -135,7 +136,7 @@ const DEPTS={
   ],
   '脳神経内科':[
     {name:'脳血管撮影（診断目的）',risk:'low'},
-    {name:'脳血管内治療（頚動脈ステント等）',risk:'high'},
+    {name:'脳血管内治療（頚動脈ステント等）',risk:'excluded',excludeNote:'脳血管内治療（頸動脈ステント留置術・動脈瘤コイル塞栓術等）は、周術期に抗血栓療法の継続・強化が必要な手技であり、本マニュアルの一般原則（高出血リスク→休薬）は適用しません。管理方針は神経内科・脳神経外科の専門プロトコルに従ってください。'},
     {name:'ボトックス注射',risk:'low'},
     {name:'針筋電図',risk:'low'},
     {name:'神経・筋生検',risk:'high'},
@@ -155,7 +156,7 @@ const DEPTS={
   ],
   '脳神経外科':[
     {name:'脳血管撮影（診断目的）',risk:'low'},
-    {name:'脳血管内治療（コイル塞栓術等）',risk:'high'},
+    {name:'脳血管内治療（コイル塞栓術等）',risk:'excluded',excludeNote:'脳血管内治療（コイル塞栓術・頸動脈ステント留置術等）は、周術期に抗血栓療法の継続・強化が必要な手技であり、本マニュアルの一般原則（高出血リスク→休薬）は適用しません。管理方針は脳神経外科の専門プロトコルに従ってください。'},
     {name:'腰椎穿刺・腰椎ドレナージ',risk:'low'},
     {name:'慢性硬膜下血腫穿孔洗浄術',risk:'low'},
     {name:'脳室ドレナージ',risk:'low'},
@@ -287,6 +288,7 @@ function getQs(){
   const p=getProc();if(!p)return [];
   const r=p.risk,sp=p.sp||'';
   const qs=[];
+  if(r==='excluded') return qs;
   if(r==='low'){
     if(sp==='lp'&&hasDT('DABI')) qs.push('crcl');
     return qs;
@@ -455,7 +457,8 @@ function renderProc(){
   let h=hdr('proc')+`<div class="content"><div class="step-title">STEP 3 / 4</div><div class="step-q">${getDept()}の手技を選んでください</div>`;
   procs.forEach((p,i)=>{
     let lbl='',cls='';
-    if(p.risk==='low'){lbl='低出血リスク';cls='rlow';}
+    if(p.risk==='excluded'){lbl='本マニュアル適用除外';cls='rexcl';}
+    else if(p.risk==='low'){lbl='低出血リスク';cls='rlow';}
     else if(p.risk==='high'){lbl='高出血リスク';cls='rhigh';}
     else{lbl='区域麻酔（中リスク）';cls='rmid';}
     h+=`<div class="proc-item" onclick="selProc(${i})"><div class="pname">${p.name}</div><div class="rbadge ${cls}">${lbl}</div></div>`;
@@ -491,12 +494,22 @@ function renderResult(){
   const isPacer=p.sp==='pacemaker';
   const isGI=p.sp==='gi';
   const isDental=p.sp==='dental';
+  const isExcluded=p.risk==='excluded';
   const apIds=S.drugs.filter(id=>['asa','clopi','prasu','tica','tilo'].includes(id));
   const isDAPT=apIds.length>=2;
   const isTriple=S.drugs.some(id=>['warf','dabi','riva','apix','edox'].includes(id))&&isDAPT;
-  let riskText=p.risk==='low'?'低出血リスク':p.risk==='high'?'高出血リスク':'区域麻酔（中リスク）';
+  let riskText=p.risk==='excluded'?'本マニュアル適用除外':p.risk==='low'?'低出血リスク':p.risk==='high'?'高出血リスク':'区域麻酔（中リスク）';
 
   let h=hdr('result')+`<div class="content"><div class="sec-header"><h2>推奨結果</h2><p>${getDept()}｜${p.name}｜${riskText}</p></div>`;
+
+  if(isExcluded){
+    h+=`<div class="warn-box"><strong>⚠️ 本マニュアルの一般原則は適用されません</strong>${p.excludeNote}</div>`;
+    h+=`<div class="contact"><strong>相談先</strong>処方科（循環器内科・脳神経内科・脳神経外科等）の専門プロトコルに従ってください。<br>不明な点は医療安全管理室（内線 3311）へ。</div>`;
+    h+=`<button class="btn btn-back" onclick="go('proc')">← 前の画面に戻る</button>`;
+    h+=`<button class="new-btn" onclick="reset()">最初からやり直す</button>`;
+    h+=`<div class="foot">本ガイドは院内マニュアル（2026年6月9日改訂版）に基づきます。<br>個々の症例では担当科・処方科の判断を優先してください。</div></div>`;
+    return h;
+  }
 
   if(isTriple) h+=`<div class="warn-box"><strong>⚠️ 三剤併用（抗凝固薬＋DAPT）</strong>出血リスクが著しく上昇します。処方科と十分協議の上、個別に出血リスクと血栓リスクを評価してください。</div>`;
   else if(isDAPT) h+=`<div class="warn-box"><strong>⚠️ DAPT（二剤併用抗血小板療法）</strong>単剤中止の可否も含め、必ず循環器内科等の処方科と協議してください。</div>`;

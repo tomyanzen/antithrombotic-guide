@@ -34,6 +34,20 @@ body{font-family:'Meiryo','Yu Gothic',sans-serif;background:#f0f4f8;color:#1a1a2
 .rhigh{background:#FFEBEE;color:#C62828;border:1px solid #EF9A9A}
 .rmid{background:#FFF8E1;color:#E65100;border:1px solid #FFE082}
 .rexcl{background:#ECEFF1;color:#455A64;border:1px solid #B0BEC5}
+.risk-card{background:white;border:1.5px solid #ddd;border-left-width:6px;border-radius:8px;padding:0;margin-bottom:10px;cursor:pointer;transition:all .15s;overflow:hidden}
+.risk-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.12);transform:translateY(-1px)}
+.risk-card-head{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;font-weight:bold}
+.risk-card-title{font-size:15px}
+.risk-card-list{font-size:12px;color:#666;line-height:1.9;padding:9px 14px 11px;border-top:1px solid #eee;background:#fafbfc}
+.gh-high{border-left-color:#C62828}
+.gh-high .risk-card-head{background:#FFEBEE;color:#C62828}
+.gh-mid{border-left-color:#E65100}
+.gh-mid .risk-card-head{background:#FFF8E1;color:#E65100}
+.gh-low{border-left-color:#2E7D32}
+.gh-low .risk-card-head{background:#E8F5E9;color:#2E7D32}
+.gh-excl{border-left-color:#78909C}
+.gh-excl .risk-card-head{background:#ECEFF1;color:#455A64}
+.chev{font-size:20px;line-height:1;opacity:.55}
 .btn{display:block;width:100%;padding:14px;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;border:none;margin-top:14px;transition:all .15s}
 .btn-p{background:#1F3864;color:white}
 .btn-p:hover{background:#2E75B6}
@@ -126,32 +140,48 @@ const DEPTS={
   '呼吸器内科':[
     {name:'気管支鏡（観察のみ）',risk:'low'},
     {name:'気管支肺胞洗浄（BAL）',risk:'low'},
-    {name:'気管支生検',risk:'high'},
-    {name:'経気管支肺生検（TBLB）',risk:'high'},
-    {name:'EBUS下穿刺',risk:'high'},
-    {name:'胸腔鏡',risk:'high'},
-    {name:'CTガイド下肺生検',risk:'high'},
     {name:'CTガイド下マーキング',risk:'low'},
     {name:'気管支ステント留置',risk:'low'},
+    {name:'気管支生検（パンチ・ブラシ）',risk:'high'},
+    {name:'経気管支肺生検（TBLB）',risk:'high'},
+    {name:'超音波気管支鏡（EBUS）下穿刺',risk:'high'},
+    {name:'胸腔鏡',risk:'high'},
+    {name:'エコー下肺生検',risk:'high'},
+    {name:'CTガイド下肺生検',risk:'high'},
   ],
   '脳神経内科':[
+    {name:'経食道心エコー',risk:'low'},
     {name:'脳血管撮影（診断目的）',risk:'low'},
-    {name:'脳血管内治療（頚動脈ステント等）',risk:'excluded',excludeNote:'脳血管内治療（頸動脈ステント留置術・動脈瘤コイル塞栓術等）は、周術期に抗血栓療法の継続・強化が必要な手技であり、本マニュアルの一般原則（高出血リスク→休薬）は適用しません。管理方針は神経内科・脳神経外科の専門プロトコルに従ってください。'},
     {name:'ボトックス注射',risk:'low'},
     {name:'針筋電図',risk:'low'},
-    {name:'神経・筋生検',risk:'high'},
     {name:'髄液検査（腰椎穿刺）',risk:'low',sp:'lp'},
+    {name:'神経・筋生検',risk:'high'},
+    {name:'脳血管内治療（頚動脈ステント等）',risk:'excluded',excludeNote:'脳血管内治療（頸動脈ステント留置術・動脈瘤コイル塞栓術等）は、周術期に抗血栓療法の継続・強化が必要な手技であり、本マニュアルの一般原則（高出血リスク→休薬）は適用しません。管理方針は脳神経内科・脳神経外科の専門プロトコルに従ってください。'},
+  ],
+  '腎臓内科':[
+    {name:'腎生検',risk:'high'},
+    {name:'CAPDカテーテル留置術・抜去術',risk:'high'},
+  ],
+  '血液内科':[
+    {name:'骨髄穿刺',risk:'low'},
+    {name:'骨髄生検',risk:'low'},
+    {name:'腰椎穿刺・髄注',risk:'low',sp:'lp'},
+    {name:'リンパ節生検',risk:'high'},
+    {name:'皮膚生検',risk:'high'},
   ],
   '外科（消化器・乳腺）':[
-    {name:'全身麻酔下手術（腹腔鏡・開腹）',risk:'high'},
     {name:'創部穿刺排液（18G）',risk:'low'},
     {name:'穿刺吸引細胞診（21-22G）',risk:'low'},
     {name:'ドレーン抜去',risk:'low'},
     {name:'針生検（14-18G）',risk:'low'},
+    {name:'全身麻酔下手術（腹腔鏡・開腹）',risk:'high'},
     {name:'マンモトーム生検（8-11G）',risk:'high'},
     {name:'局所麻酔下腫瘍摘出・リンパ節生検',risk:'high'},
   ],
-  '心臓血管外科・呼吸器外科':[
+  '心臓血管外科':[
+    {name:'全身麻酔下手術（全例）',risk:'high'},
+  ],
+  '呼吸器外科':[
     {name:'全身麻酔下手術（全例）',risk:'high'},
   ],
   '脳神経外科':[
@@ -211,41 +241,46 @@ const DEPTS={
     {name:'埋伏抜歯',risk:'low',sp:'dental'},
     {name:'全身麻酔下手術',risk:'high'},
   ],
-  '放射線科':[
-    {name:'血管造影（診断目的）',risk:'low'},
-    {name:'CTガイド下ドレナージ・生検',risk:'low'},
-    {name:'CV-port・Aポート留置',risk:'low'},
+  '放射線診断科':[
+    {name:'一般血管造影（診断目的）',risk:'low'},
+    {name:'CT・エコーガイド下ドレナージ',risk:'low'},
+    {name:'A-port・CV-port留置',risk:'low'},
+    {name:'CT・エコーガイド下生検',risk:'low'},
     {name:'IVR（塞栓術・血管形成術等）',risk:'high'},
+  ],
+  '放射線治療科':[
     {name:'外照射（通常照射・定位照射等）',risk:'low'},
     {name:'小線源治療（腔内照射）',risk:'low'},
     {name:'小線源治療（組織内照射）',risk:'high'},
   ],
-  '皮膚科・形成外科':[
+  '皮膚科':[
     {name:'レーザー治療・脱毛治療',risk:'low'},
     {name:'皮膚生検',risk:'low'},
+    {name:'全身麻酔下手術',risk:'high'},
+  ],
+  '形成外科':[
+    {name:'レーザー治療・脱毛治療',risk:'low'},
     {name:'局所麻酔下小切除',risk:'low'},
     {name:'全身麻酔下手術',risk:'high'},
   ],
   '産婦人科':[
-    {name:'外来診察・内診・外来処置',risk:'low'},
+    {name:'外来診察・内診',risk:'low'},
+    {name:'外来処置（注射・生検等）',risk:'low'},
     {name:'全身麻酔下手術',risk:'high'},
   ],
-  '腎臓内科・血液内科':[
-    {name:'腎生検',risk:'high'},
-    {name:'CAPDカテーテル留置・抜去',risk:'high'},
-    {name:'骨髄穿刺・骨髄生検',risk:'low'},
-    {name:'腰椎穿刺・髄注（血液内科）',risk:'low'},
-    {name:'リンパ節生検',risk:'high'},
-    {name:'皮膚生検',risk:'high'},
-  ],
   '麻酔科（区域麻酔）':[
-    {name:'末梢神経ブロック（体表近傍）',risk:'low'},
-    {name:'硬膜外麻酔（胸腰部）',risk:'anest'},
-    {name:'脊髄くも膜下麻酔',risk:'anest'},
-    {name:'傍脊椎ブロック',risk:'anest'},
-    {name:'腰神経叢ブロック',risk:'anest'},
-    {name:'星状神経節ブロック（SGB）',risk:'anest'},
-    {name:'超音波ガイド下神経ブロック（深部）',risk:'anest'},
+    {name:'末梢神経ブロック（体表近傍）',risk:'anest_low'},
+    {name:'TAPAブロック',risk:'anest_low'},
+    {name:'iPACKブロック',risk:'anest_low'},
+    {name:'膝窩神経叢ブロック',risk:'anest_low'},
+    {name:'硬膜外麻酔（胸腰部）',risk:'anest_mid'},
+    {name:'脊髄くも膜下麻酔',risk:'anest_mid'},
+    {name:'傍脊椎ブロック',risk:'anest_mid'},
+    {name:'腰神経叢ブロック',risk:'anest_mid'},
+    {name:'星状神経節ブロック（SGB）',risk:'anest_mid'},
+    {name:'腕神経叢ブロック（斜角筋間／鎖骨下）',risk:'anest_mid'},
+    {name:'超音波ガイド下神経ブロック（その他深部）',risk:'anest_mid'},
+    {name:'PENGブロック',risk:'anest_mid'},
   ],
 };
 
@@ -270,7 +305,15 @@ const AC_CRITERIA=[
   '重症血栓性素因（プロテインC/S欠乏、抗トロンビンIII欠乏等）',
 ];
 
-let S={step:'drug',drugs:[],deptIdx:null,procIdx:null,extra:{tap:null,tac:null,crcl:null}};
+// DOAC用量区分（2026年版区域麻酔ガイドライン 表11）
+const DOSE_INFO={
+  dabi:{low:'110mg × 2回/日',std:'150mg × 2回/日'},
+  riva:{low:'10mg × 1回/日',std:'15〜20mg × 1〜2回/日'},
+  apix:{low:'2.5mg × 2回/日',std:'5〜10mg × 2回/日'},
+  edox:{low:'15mg × 1回/日',std:'30〜60mg × 1回/日'},
+};
+
+let S={step:'drug',drugs:[],deptIdx:null,procIdx:null,extra:{tap:null,tac:null,crcl:null,dose:null,plt:null}};
 
 const deptNames=Object.keys(DEPTS);
 function getDept(){return deptNames[S.deptIdx];}
@@ -290,15 +333,36 @@ function getQs(){
   const r=p.risk,sp=p.sp||'';
   const qs=[];
   if(r==='excluded') return qs;
+
+  // 区域麻酔（中リスク以上）：2026年版GL準拠。用量区分・血小板数を確認
+  if(r==='anest_mid'){
+    qs.push('plt');                                   // 高リスク判定（血小板<10万・凝固異常）
+    if((hasP2Y12()||hasCIL())) qs.push('tap');
+    if(hasDOAC()) qs.push('dose');                    // 用量別基準（CrClではない）
+    if(hasDT('DABI')) qs.push('crcl');                // ダビガトランのみ腎機能も確認
+    return [...new Set(qs)];
+  }
+
+  // 区域麻酔（低リスク＝体表面ブロック）：手術・高出血リスク処置と同じ基準を適用
+  if(r==='anest_low'){
+    if(hasP2Y12()||hasCIL()) qs.push('tap');
+    if(hasVKA()) qs.push('tac');
+    if(hasDOAC()) qs.push('crcl');
+    return [...new Set(qs)];
+  }
+
   if(r==='low'){
-    if(sp==='lp'&&hasDT('DABI')) qs.push('crcl');
+    if(sp==='lp'){
+      if(hasDOAC()) qs.push('dose');                  // 腰椎穿刺は区域麻酔中リスクに準拠
+      if(hasDT('DABI')) qs.push('crcl');
+    }
     return qs;
   }
-  if(r==='high'||r==='anest'){
+  if(r==='high'){
     if((hasP2Y12()||hasCIL())&&sp!=='pacemaker') qs.push('tap');
     if(hasVKA()&&sp!=='pacemaker') qs.push('tac');
     if(hasDT('DABI')) qs.push('crcl');
-    if(hasDT('XA')&&r==='high') qs.push('crcl');
+    if(hasDT('XA')) qs.push('crcl');
   }
   // deduplicate
   return [...new Set(qs)];
@@ -312,27 +376,31 @@ function drugRec(id){
   const drug=DRUGS.find(d=>d.id===id);
   const p=getProc();
   const r=p.risk,sp=p.sp||'';
-  const gi=sp==='gi',pacer=sp==='pacemaker',lp=sp==='lp',anest=r==='anest',dental=sp==='dental';
-  const tap=S.extra.tap,tac=S.extra.tac,crcl=S.extra.crcl;
+  const gi=sp==='gi',pacer=sp==='pacemaker',lp=sp==='lp',dental=sp==='dental';
+  const anestMid=r==='anest_mid'||lp;   // 腰椎穿刺は区域麻酔中リスクに準拠
+  const anestLow=r==='anest_low';
+  const tap=S.extra.tap,tac=S.extra.tac,crcl=S.extra.crcl,dose=S.extra.dose;
+  // 体表面ブロック（低リスク）は「手術・高出血リスク処置」の基準を適用（2026年版GL）
+  const asHigh=(r==='high'||anestLow);
 
   if(drug.type==='ASA'){
-    if(r==='low') return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'低出血リスク手技のため休薬不要。'};
-    if(anest) return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'アスピリン単剤は区域麻酔に対して休薬不要（2016年日本GL）。'};
+    if(r==='low'&&!lp) return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'低出血リスク手技のため休薬不要。'};
+    if(anestMid) return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'低用量アスピリン（<200mg/日）を含むNSAIDsは、脊髄幹麻酔・深部の神経ブロックにおいても休薬は必須ではない（2026年版区域麻酔GL）。'};
     if(pacer) return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'ペースメーカー・ICD植込み術では継続可（AHA/ACC 2023）。'};
     return{badge:'原則継続',cls:'a-cont',hold:'通常休薬不要。必要な場合のみ3〜7日前',restart:'手術翌日（止血確認後）',note:'高出血リスク手技でもASA単剤は原則継続。虚血リスクが出血リスクを上回るため。'};
   }
 
   if(drug.type==='P2Y12'){
-    if(r==='low') return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'低出血リスク手技のため継続。'};
+    if(r==='low'&&!lp) return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'低出血リスク手技のため継続。'};
     if(pacer) return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'ペースメーカー・ICD植込み術では継続可（AHA/ACC 2023）。'};
-    if(anest){
+    if(anestMid){
       if(tap===true) return{badge:'処方科と協議',cls:'a-cons',hold:'原則継続（中止は処方科必須）',restart:'手術翌日',note:'高血栓リスク群。必ず処方科（循環器内科等）と協議してください。'};
       let h='';
       if(id==='clopi') h='5〜7日前';
       else if(id==='prasu') h='7〜14日前（JCS 2020：7日前、添付文書：14日前）';
-      else if(id==='tica') h='3〜5日前（JCS 2020：3日前、ACC/AHA：5日前）';
+      else if(id==='tica') h='5日前（2026年版区域麻酔GL）';
       else if(id==='tilo') h='10〜14日前';
-      return{badge:'休薬',cls:'a-hold',hold:h,restart:'カテーテル抜去後6時間以上経過後から再開',note:'区域麻酔（中リスク以上のブロック）における管理。2016年日本GL準拠。'};
+      return{badge:'休薬',cls:'a-hold',hold:h,restart:'カテーテル抜去後6時間以上経過後から再開',note:'区域麻酔（中リスク以上のブロック）における管理。2026年版区域麻酔GL準拠。'+(id==='tica'?'\nチカグレロルは区域麻酔施行時は5日前を基準とする。':'')};
     }
     if(tap===true) return{badge:'処方科と協議',cls:'a-cons',hold:'原則継続（中止は処方科必須）',restart:'手術翌日',note:'高血栓リスク群のため原則継続。中止の場合は必ず処方科（循環器内科等）と協議すること。消化器内視鏡ではASA・シロスタゾールへの一時変更も選択肢（JGES 2017）。'};
     let hold='';
@@ -348,20 +416,21 @@ function drugRec(id){
   }
 
   if(drug.type==='CIL'){
-    if(r==='low') return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'低出血リスク手技のため継続。'};
+    if(r==='low'&&!lp) return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'低出血リスク手技のため継続。'};
     const hold=gi?'1日前（JGES 2017最短）':'2〜3日前';
     if(tap===true) return{badge:'処方科と協議',cls:'a-cons',hold:'2〜3日前（処方科と協議の上決定）',restart:'手術翌日',note:'高血栓リスクの場合は処方科と協議すること。'};
+    if(anestMid) return{badge:'休薬',cls:'a-hold',hold:'2〜3日前',restart:'カテーテル抜去後6時間以上経過後から再開',note:'区域麻酔（中リスク以上のブロック）における管理。'};
     return{badge:'休薬',cls:'a-hold',hold,restart:'手術翌日（止血確認後）',note:null};
   }
 
   if(drug.type==='VKA'){
     if(pacer) return{badge:'継続を推奨',cls:'a-cont',hold:null,restart:null,note:'【重要】ペースメーカー・ICD植込み術ではワルファリン継続投与が推奨される（AHA/ACC 2023 Class I、BRUISE CONTROL試験）。ブリッジング療法は出血リスクを増加させるため行わないこと。DOAC服用患者は術前24〜48時間の休薬が目安。'};
-    if(r==='low'){
+    if(r==='low'&&!lp){
       if(gi) return{badge:'継続（INR<3.0確認）',cls:'a-cont',hold:null,restart:null,note:'消化器内視鏡低出血リスク手技：INR<3.0であれば継続下で施行可（JGES 2017）。INR≥3.0の場合は処方科に連絡。DOACへの一時変更も選択肢。'};
       return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'低出血リスク手技のため休薬不要。術前PT-INR測定を行い、INR>3.0の場合は処方科に連絡。'};
     }
-    if(anest){
-      return{badge:'休薬',cls:'a-hold',hold:'3〜5日前中止。手技前日にINR≤1.5確認',restart:'手術翌日からワルファリン再開。INR治療域回復後ヘパリン中止。',note:'区域麻酔（中リスク以上のブロック）：neuraxial麻酔前およびカテーテル抜去前にPT-INR≤1.5確認（2016年日本GL表7）。穿刺から12時間以上後に初回投与。'};
+    if(anestMid){
+      return{badge:'休薬',cls:'a-hold',hold:'3〜5日前中止。ブロック前にPT-INR ≤ 1.2 を確認',restart:'カテーテル抜去後 0時間（抜去直後から再開可）',note:'【2026年版区域麻酔GL 表9】中リスク以上のブロック前およびカテーテル抜去前にPT-INR ≤ 1.2 を確認すること。\n※前版（2016年）の基準 INR≤1.5 から変更されています。\n術後の初回投与は穿刺から12時間以上後。'+(lp?'\n腰椎穿刺ではINR<1.4を目安とすることが望ましい（Pract Neurol 2018）。':'')};
     }
     if(tac===true){
       return{badge:'休薬＋ブリッジング考慮',cls:'a-cons',hold:'3〜5日前（INR<1.5まで）',restart:'手術翌日からワルファリン再開。INR治療域回復後ヘパリン中止。',note:'血栓塞栓症高リスク群。必ず処方科と協議の上ブリッジング療法を検討。\n①ワルファリン中止3〜5日前（INR<1.5まで）\n②UFH静注（術前6〜12時間前中止）またはLMWH（術前24時間前中止）\n③手術翌日からワルファリン再開'};
@@ -371,21 +440,20 @@ function drugRec(id){
   }
 
   if(drug.type==='DABI'){
+    // 区域麻酔（中リスク以上）／腰椎穿刺：2026年版GL 表9 = 用量別基準
+    if(anestMid){
+      if(!dose) return{badge:'要用量確認',cls:'a-cons',hold:'DOACの用量区分の入力が必要です',restart:'',note:null};
+      if(crcl==='lt30') return{badge:'禁忌',cls:'a-cons',hold:'CrCl<30：本剤は禁忌',restart:'処方科・薬剤部に相談',note:'ダビガトランはCrCl<30で禁忌。区域麻酔の中止も検討すること。'};
+      const h=dose==='low'?'48時間前に最終服用（低用量）':'72時間前に最終服用（標準用量）';
+      const rs=dose==='low'?'カテーテル抜去後 6時間':'カテーテル抜去後 24時間';
+      const warn=crcl==='30to49'?'\n【注意】CrCl 30〜49 では薬物排泄遅延を考慮し、休薬期間の72時間への延長や区域麻酔の中止を検討すること。':'';
+      return{badge:'休薬',cls:'a-hold',hold:h,restart:rs,note:'【2026年版区域麻酔GL 表9】休薬期間は腎機能ではなく用量区分で決定します。'+warn+'\n可能であれば残存DOAC濃度（<30 ng/mL）を測定し参考にする。'};
+    }
     if(r==='low'){
       if(gi) return{badge:'当日朝スキップ',cls:'a-hold',hold:'当日朝1回スキップのみ（JGES 2017）',restart:'次回より通常通り内服',note:null};
-      if(lp){
-        if(!crcl) return{badge:'要CrCl確認',cls:'a-cons',hold:'CrClの入力が必要です',restart:'',note:null};
-        const h=crcl==='lt30'?'禁忌（CrCl<30）。処方科に相談':crcl==='30to49'?'5日（120時間）以上前に最終服用（ASRA 2022）':'4〜5日（96〜120時間）前に最終服用（ASRA 2022）';
-        return{badge:'休薬',cls:'a-hold',hold:h,restart:'穿刺後4時間以上経過後から再開',note:'腰椎穿刺：DOAC服用患者はASRA（neuraxial麻酔）基準に準じた管理を推奨（神経内科確認済み）。'};
-      }
       if(!crcl) return{badge:'要CrCl確認',cls:'a-cons',hold:'CrClの入力が必要です',restart:'',note:null};
       const h=crcl==='lt30'?'禁忌（CrCl<30）。処方科に相談':crcl==='30to49'?'2日（48時間）前に中止':'1日（24時間）前に中止（PAUSE試験）';
-      return{badge:'休薬',cls:'a-hold',hold:h,restart:'手術翌日（止血確認後）',note:'CrCl<30は禁忌。'};
-    }
-    if(anest){
-      if(!crcl) return{badge:'要CrCl確認',cls:'a-cons',hold:'CrClの入力が必要です',restart:'',note:null};
-      const h=crcl==='lt30'?'禁忌（CrCl<30）。処方科に相談':crcl==='30to49'?'5日（120時間）以上前に最終服用（2016年日本GL表7）':'4〜5日（96〜120時間）前に最終服用（2016年日本GL表7）';
-      return{badge:'休薬',cls:'a-hold',hold:h,restart:'カテーテル抜去後6時間以上経過後から再開',note:'ダビガトランはCrCl<30で禁忌。カテーテル留置中は内服再開不可。'};
+      return{badge:'休薬',cls:'a-hold',hold:h,restart:'手技翌日（止血確認後）',note:'CrCl<30は禁忌。'};
     }
     // high risk
     if(!crcl) return{badge:'要CrCl確認',cls:'a-cons',hold:'CrClの入力が必要です',restart:'',note:null};
@@ -397,16 +465,17 @@ function drugRec(id){
 
   if(drug.type==='XA'){
     const xn=id==='riva'?'リバーロキサバン':id==='apix'?'アピキサバン':'エドキサバン';
+    // 区域麻酔（中リスク以上）／腰椎穿刺：2026年版GL 表9 = 用量別基準
+    if(anestMid){
+      if(!dose) return{badge:'要用量確認',cls:'a-cons',hold:'DOACの用量区分の入力が必要です',restart:'',note:null};
+      const h=dose==='low'?'24時間前に最終服用（低用量）':'72時間前に最終服用（標準・高用量）';
+      const rs=dose==='low'?'カテーテル抜去後 6時間':'カテーテル抜去後 24時間';
+      const lim=id==='edox'?'CrCl<30':'CrCl<15';
+      return{badge:'休薬',cls:'a-hold',hold:h,restart:rs,note:`【2026年版区域麻酔GL 表9】休薬期間は腎機能ではなく用量区分で決定します。\n【腎機能低下例の注意】${xn}は${lim}で薬物排泄遅延を考慮し、休薬期間の72時間への延長や区域麻酔の中止を検討すること。\n可能であれば抗Xa活性（≦0.1 IU/mL）を測定し参考にする。`};
+    }
     if(r==='low'){
       if(gi) return{badge:'当日朝スキップ',cls:'a-hold',hold:'当日朝1回スキップのみ（JGES 2017）',restart:'次回より通常通り内服',note:null};
-      if(lp){
-        return{badge:'休薬',cls:'a-hold',hold:'最終服用から72時間（3日）以上前に中止（ASRA 2022）',restart:'穿刺後4時間以上経過後から再開',note:'腰椎穿刺：Xa因子阻害薬はASRA基準（72時間前中止）に準じた管理を推奨。'};
-      }
-      return{badge:'1日前',cls:'a-hold',hold:'1日（24時間）前に中止（PAUSE試験）',restart:'手術翌日（止血確認後）',note:null};
-    }
-    if(anest){
-      const h=id==='apix'?'3日（72時間）前に最終服用（2016年日本GL表7）':'2日（48時間）前に最終服用（2016年日本GL表7）';
-      return{badge:'休薬',cls:'a-hold',hold:h,restart:'カテーテル抜去後6時間以上経過後から再開',note:'区域麻酔（中リスク以上）の管理は2016年日本GL表7に準拠。'};
+      return{badge:'1日前',cls:'a-hold',hold:'1日（24時間）前に中止（PAUSE試験）',restart:'手技翌日（止血確認後）',note:null};
     }
     // high risk - need CrCl
     if(!crcl) return{badge:'要CrCl確認',cls:'a-cons',hold:'CrClの入力が必要です',restart:'',note:null};
@@ -453,17 +522,53 @@ function renderDept(){
   return h;
 }
 
-function renderProc(){
+// リスク区分＋特例ルール（sp）の組み合わせごとにグループを作る。
+// 同じリスクでも特例ルールが違うものは別グループにしないと誤判定になるため。
+function buildGroups(){
   const procs=DEPTS[getDept()];
-  let h=hdr('proc')+`<div class="content"><div class="step-title">STEP 3 / 4</div><div class="step-q">${getDept()}の手技を選んでください</div>`;
+  const map=new Map();
   procs.forEach((p,i)=>{
-    let lbl='',cls='';
-    if(p.risk==='excluded'){lbl='本マニュアル適用除外';cls='rexcl';}
-    else if(p.risk==='low'){lbl='低出血リスク';cls='rlow';}
-    else if(p.risk==='high'){lbl='高出血リスク';cls='rhigh';}
-    else{lbl='区域麻酔（中リスク）';cls='rmid';}
-    h+=`<div class="proc-item" onclick="selProc(${i})"><div class="pname">${p.name}</div><div class="rbadge ${cls}">${lbl}</div></div>`;
+    const sp=p.sp||'';
+    // 適用除外は手技ごとに理由が異なるため個別に
+    const key=p.risk==='excluded'?('excluded#'+i):(p.risk+'#'+sp);
+    if(!map.has(key)) map.set(key,{risk:p.risk,sp,idx:i,names:[]});
+    map.get(key).names.push(p.name);
   });
+
+  const LABELS={
+    'high#':          {t:'高出血リスク',                    c:'gh-high',o:1},
+    'high#gi':        {t:'高出血リスク（消化器内視鏡）',      c:'gh-high',o:2},
+    'high#pacemaker': {t:'ペースメーカー・ICD植込み術',      c:'gh-high',o:3},
+    'anest_mid#':     {t:'区域麻酔（中リスク・深部ブロック）',c:'gh-mid', o:4},
+    'low#':           {t:'低出血リスク',                    c:'gh-low', o:5},
+    'low#gi':         {t:'低出血リスク（消化器内視鏡）',      c:'gh-low', o:6},
+    'low#lp':         {t:'腰椎穿刺・髄液検査',               c:'gh-mid', o:7},
+    'low#dental':     {t:'抜歯（普通・埋伏）',               c:'gh-low', o:8},
+    'anest_low#':     {t:'区域麻酔（低リスク・体表面ブロック）',c:'gh-low',o:9},
+  };
+
+  const out=[];
+  for(const [key,g] of map){
+    if(g.risk==='excluded'){
+      out.push({...g,label:'本マニュアル適用除外',cls:'gh-excl',order:99});
+    }else{
+      const L=LABELS[g.risk+'#'+g.sp]||{t:g.risk,c:'gh-low',o:50};
+      out.push({...g,label:L.t,cls:L.c,order:L.o});
+    }
+  }
+  return out.sort((a,b)=>a.order-b.order);
+}
+
+function renderProc(){
+  let h=hdr('proc')+`<div class="content"><div class="step-title">STEP 3 / 4</div><div class="step-q">${getDept()}の出血リスク区分を選んでください</div><div style="font-size:12px;color:#888;margin-bottom:10px">各区分の下に該当手技を示しています</div>`;
+
+  for(const g of buildGroups()){
+    h+=`<div class="risk-card ${g.cls}" onclick="selProc(${g.idx})">`
+      +`<div class="risk-card-head"><span class="risk-card-title">${g.label}</span><span class="chev">›</span></div>`
+      +`<div class="risk-card-list">${g.names.join('　／　')}</div>`
+      +`</div>`;
+  }
+
   h+=`<button class="btn btn-back" onclick="go('dept')">← 戻る</button></div>`;
   return h;
 }
@@ -479,6 +584,21 @@ function renderExtra(){
   if(qs.includes('tac')){
     const s=S.extra.tac;
     h+=`<div class="extra-card"><div class="extra-title">【抗凝固薬】血栓塞栓症 高リスク群に該当しますか？</div><ul class="criteria">${AC_CRITERIA.map(c=>`<li>${c}</li>`).join('')}</ul><div class="yn-grid"><button class="yn-btn${s===true?' yn-yes':''}" onclick="setE('tac',true)">⚠️ いずれかに該当（高リスク）</button><button class="yn-btn${s===false?' yn-no':''}" onclick="setE('tac',false)">✓ 該当なし（低リスク）</button></div></div>`;
+  }
+  if(qs.includes('plt')){
+    const s=S.extra.plt;
+    h+=`<div class="extra-card"><div class="extra-title">血小板減少・凝固異常はありますか？<br><span style="font-size:12px;font-weight:normal;color:#888">血小板 &lt; 10万/μL、または重篤な肝障害・凝固因子欠乏等</span></div><div class="yn-grid"><button class="yn-btn${s===true?' yn-yes':''}" onclick="setE('plt',true)">⚠️ あり（高リスク）</button><button class="yn-btn${s===false?' yn-no':''}" onclick="setE('plt',false)">✓ なし</button></div></div>`;
+  }
+  if(qs.includes('dose')){
+    const s=S.extra.dose;
+    const doacIds=S.drugs.filter(id=>['dabi','riva','apix','edox'].includes(id));
+    let lowList='',stdList='';
+    for(const id of doacIds){
+      const d=DRUGS.find(x=>x.id===id);
+      lowList+=`<div style="font-size:11px;color:#555">${d.name}：${DOSE_INFO[id].low}</div>`;
+      stdList+=`<div style="font-size:11px;color:#555">${d.name}：${DOSE_INFO[id].std}</div>`;
+    }
+    h+=`<div class="extra-card"><div class="extra-title">DOACの用量区分を選んでください<br><span style="font-size:12px;font-weight:normal;color:#888">2026年版区域麻酔ガイドライン 表11。実際の処方内容で確認してください。</span></div><div class="crcl-grid" style="grid-template-columns:1fr"><button class="crcl-btn${s==='low'?' crcl-sel':''}" style="text-align:left" onclick="setE('dose','low')"><div style="margin-bottom:4px">低用量（予防的用量）</div>${lowList}</button><button class="crcl-btn${s==='std'?' crcl-sel':''}" style="text-align:left" onclick="setE('dose','std')"><div style="margin-bottom:4px">標準・高用量（治療的用量）</div>${stdList}</button></div></div>`;
   }
   if(qs.includes('crcl')){
     const s=S.extra.crcl;
@@ -499,21 +619,40 @@ function renderResult(){
   const apIds=S.drugs.filter(id=>['asa','clopi','prasu','tica','tilo'].includes(id));
   const isDAPT=apIds.length>=2;
   const isTriple=S.drugs.some(id=>['warf','dabi','riva','apix','edox'].includes(id))&&isDAPT;
-  let riskText=p.risk==='excluded'?'本マニュアル適用除外':p.risk==='low'?'低出血リスク':p.risk==='high'?'高出血リスク':'区域麻酔（中リスク）';
+  const isAnestMid=p.risk==='anest_mid';
+  const isAnestLow=p.risk==='anest_low';
+  const isLP=p.sp==='lp';
+  let riskText=p.risk==='excluded'?'本マニュアル適用除外':p.risk==='low'?'低出血リスク':p.risk==='high'?'高出血リスク':p.risk==='anest_low'?'区域麻酔（低リスク・体表面）':'区域麻酔（中リスク・深部）';
 
-  let h=hdr('result')+`<div class="content"><div class="sec-header"><h2>推奨結果</h2><p>${getDept()}｜${p.name}｜${riskText}</p></div>`;
+  // 選択したリスク区分のラベルを取得（手技名ではなく区分名で表示）
+  const grp=buildGroups().find(g=>g.idx===S.procIdx)||{label:riskText,names:[p.name]};
+
+  let h=hdr('result')+`<div class="content"><div class="sec-header"><h2>推奨結果</h2><p>${getDept()}｜${grp.label}</p></div>`;
+
+  // 区域麻酔・高リスク（血小板減少/凝固異常）→ 原則禁忌
+  if(isAnestMid&&S.extra.plt===true){
+    h+=`<div class="warn-box"><strong>⛔ 当該区域麻酔手技は原則禁忌です</strong>血小板 &lt; 10万/μL または凝固異常のある患者に中リスク手技を行う場合、区域麻酔（高リスク）に分類され原則禁忌となります（2026年版ガイドライン 総論5章）。<br><br>麻酔科と協議し、<b>全身麻酔等の代替麻酔法への変更を検討</b>してください。手術自体は代替麻酔法で施行可能です。</div>`;
+    h+=`<div class="contact"><strong>相談先</strong>麻酔科<br>処方科（循環器内科・脳神経内科等）<br>医療安全管理室（内線 3311）</div>`;
+    h+=`<button class="btn btn-back" onclick="go('extra')">← 前の画面に戻る</button>`;
+    h+=`<button class="new-btn" onclick="reset()">最初からやり直す</button>`;
+    h+=`<div class="foot">本ガイドは院内マニュアル（2026年8月25日改訂版）に基づきます。<br>個々の症例では担当科・処方科の判断を優先してください。</div></div>`;
+    return h;
+  }
 
   if(isExcluded){
     h+=`<div class="warn-box"><strong>⚠️ 本マニュアルの一般原則は適用されません</strong>${p.excludeNote}</div>`;
     h+=`<div class="contact"><strong>相談先</strong>処方科（循環器内科・脳神経内科・脳神経外科等）の専門プロトコルに従ってください。<br>不明な点は医療安全管理室（内線 3311）へ。</div>`;
     h+=`<button class="btn btn-back" onclick="go('proc')">← 前の画面に戻る</button>`;
     h+=`<button class="new-btn" onclick="reset()">最初からやり直す</button>`;
-    h+=`<div class="foot">本ガイドは院内マニュアル（2026年6月9日改訂版）に基づきます。<br>個々の症例では担当科・処方科の判断を優先してください。</div></div>`;
+    h+=`<div class="foot">本ガイドは院内マニュアル（第3.1版・2026年8月25日改訂）に基づきます。<br>個々の症例では担当科・処方科の判断を優先してください。</div></div>`;
     return h;
   }
 
   if(isTriple) h+=`<div class="warn-box"><strong>⚠️ 三剤併用（抗凝固薬＋DAPT）</strong>出血リスクが著しく上昇します。処方科と十分協議の上、個別に出血リスクと血栓リスクを評価してください。</div>`;
   else if(isDAPT) h+=`<div class="warn-box"><strong>⚠️ DAPT（二剤併用抗血小板療法）</strong>単剤中止の可否も含め、必ず循環器内科等の処方科と協議してください。</div>`;
+  if(isAnestMid) h+=`<div class="info-box"><strong>ℹ️ 区域麻酔（中リスク・深部ブロック）</strong>2026年7月改訂『抗血栓療法中の区域麻酔・神経ブロックガイドライン 改訂第2版』に準拠します。<br>DOACの休薬期間は<b>腎機能ではなく用量区分</b>で決定します。ワルファリンは<b>PT-INR ≤ 1.2</b>を確認してください（前版の1.5から変更）。</div>`;
+  if(isAnestLow) h+=`<div class="info-box"><strong>ℹ️ 区域麻酔（低リスク・体表面ブロック）</strong>体表面の神経ブロックは、手術・高出血リスク処置と同じ休薬期間を適用します（2026年版ガイドライン）。</div>`;
+  if(isLP) h+=`<div class="info-box"><strong>ℹ️ 腰椎穿刺</strong>硬膜穿刺を伴う手技のため、DOAC・ワルファリン服用患者は<b>区域麻酔（中リスク以上）に準じた管理</b>を行います。</div>`;
   if(isGI) h+=`<div class="info-box"><strong>ℹ️ 消化器内視鏡（JGES 2017適用）</strong>一般的な手術・処置基準とは異なるルールが適用されます。</div>`;
   if(isPacer) h+=`<div class="info-box"><strong>ℹ️ ペースメーカー・ICD植込み術</strong>ワルファリン継続が推奨されます（AHA/ACC 2023 Class I）。ブリッジング療法は出血リスクを増加させるため施行しないこと。</div>`;
 
@@ -534,7 +673,7 @@ function renderResult(){
   const backStep=getQs().length>0?'extra':'proc';
   h+=`<button class="btn btn-back" onclick="go('${backStep}')">← 前の画面に戻る</button>`;
   h+=`<button class="new-btn" onclick="reset()">最初からやり直す</button>`;
-  h+=`<div class="foot">本ガイドは院内マニュアル（2026年6月9日改訂版）に基づきます。<br>個々の症例では担当科・処方科の判断を優先してください。</div></div>`;
+  h+=`<div class="foot">本ガイドは院内マニュアル（第3.1版・2026年8月25日改訂）に基づきます。<br>個々の症例では担当科・処方科の判断を優先してください。</div></div>`;
   return h;
 }
 
@@ -552,14 +691,14 @@ function toggleDrug(id){
   render();
 }
 function go(step){S.step=step;render();window.scrollTo(0,0);}
-function selDept(i){S.deptIdx=i;S.procIdx=null;S.extra={tap:null,tac:null,crcl:null};go('proc');}
+function selDept(i){S.deptIdx=i;S.procIdx=null;S.extra={tap:null,tac:null,crcl:null,dose:null,plt:null};go('proc');}
 function selProc(i){
   S.procIdx=i;
-  S.extra={tap:null,tac:null,crcl:null};
+  S.extra={tap:null,tac:null,crcl:null,dose:null,plt:null};
   go(getQs().length>0?'extra':'result');
 }
 function setE(k,v){S.extra[k]=v;render();}
-function reset(){S={step:'drug',drugs:[],deptIdx:null,procIdx:null,extra:{tap:null,tac:null,crcl:null}};render();window.scrollTo(0,0);}
+function reset(){S={step:'drug',drugs:[],deptIdx:null,procIdx:null,extra:{tap:null,tac:null,crcl:null,dose:null,plt:null}};render();window.scrollTo(0,0);}
 
 render();
 </script>

@@ -385,7 +385,7 @@ function drugRec(id){
 
   if(drug.type==='ASA'){
     if(r==='low'&&!lp) return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'低出血リスク手技のため休薬不要。'};
-    if(anestMid) return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'低用量アスピリン（<200mg/日）を含むNSAIDsは、脊髄幹麻酔・深部の神経ブロックにおいても休薬は必須ではない（2026年版区域麻酔GL）。'};
+    if(anestMid) return{badge:'低用量は継続',cls:'a-cont',hold:'低用量（<200mg/日）：休薬不要\n高用量（≧200mg/日）：3〜7日前',restart:'低用量：―\n高用量：カテーテル抜去後 6時間',note:'【2026年版区域麻酔GL 表9】低用量アスピリン（<200mg/日）を含むNSAIDsは、脊髄幹麻酔・深部の神経ブロックにおいても休薬は必須ではない。\n虚血性心疾患・脳血管障害に用いる81〜100mg/日は低用量に分類される（当院採用のバイアスピリンは100mg）。\n※200mg/日以上を服用中の場合のみ、3〜7日前の休薬が必要です。処方内容をご確認ください。'};
     if(pacer) return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'ペースメーカー・ICD植込み術では継続可（AHA/ACC 2023）。'};
     return{badge:'原則継続',cls:'a-cont',hold:'通常休薬不要。必要な場合のみ3〜7日前',restart:'手術翌日（止血確認後）',note:'高出血リスク手技でもASA単剤は原則継続。虚血リスクが出血リスクを上回るため。'};
   }
@@ -395,12 +395,15 @@ function drugRec(id){
     if(pacer) return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'ペースメーカー・ICD植込み術では継続可（AHA/ACC 2023）。'};
     if(anestMid){
       if(tap===true) return{badge:'処方科と協議',cls:'a-cons',hold:'原則継続（中止は処方科必須）',restart:'手術翌日',note:'高血栓リスク群。必ず処方科（循環器内科等）と協議してください。'};
-      let h='';
-      if(id==='clopi') h='5〜7日前';
-      else if(id==='prasu') h='7〜14日前（JCS 2020：7日前、添付文書：14日前）';
-      else if(id==='tica') h='5日前（2026年版区域麻酔GL）';
-      else if(id==='tilo') h='10〜14日前';
-      return{badge:'休薬',cls:'a-hold',hold:h,restart:'カテーテル抜去後6時間以上経過後から再開',note:'区域麻酔（中リスク以上のブロック）における管理。2026年版区域麻酔GL準拠。'+(id==='tica'?'\nチカグレロルは区域麻酔施行時は5日前を基準とする。':'')};
+      // 2026年版区域麻酔GL 表9（脊髄幹麻酔・深部の神経ブロック）
+      let h='',rs='',nt='【2026年版区域麻酔GL 表9】脊髄幹麻酔・深部の神経ブロックにおける基準です。';
+      if(id==='clopi'){      h='7日前'; rs='カテーテル抜去後 0時間（抜去直後から再開可）'; }
+      else if(id==='prasu'){ h='7日前'; rs='カテーテル抜去後 24時間'; }
+      else if(id==='tica'){  h='5日前'; rs='カテーテル抜去後 24時間'; }
+      else if(id==='tilo'){  h='10〜14日前'; rs='カテーテル抜去後 24時間';
+        nt='チクロピジンは2026年版区域麻酔GL 表9に記載がないため、手術・処置の基準（10〜14日前）を適用しています。個別に処方科・麻酔科と協議してください。'; }
+      if(id==='clopi'||id==='prasu') nt+='\n※血小板数が基準値にあり、血小板機能検査等が利用可能な環境では5日間への短縮も許容されます（GL p.38）。麻酔科と協議のうえ判断してください。';
+      return{badge:'休薬',cls:'a-hold',hold:h,restart:rs,note:nt};
     }
     if(tap===true) return{badge:'処方科と協議',cls:'a-cons',hold:'原則継続（中止は処方科必須）',restart:'手術翌日',note:'高血栓リスク群のため原則継続。中止の場合は必ず処方科（循環器内科等）と協議すること。消化器内視鏡ではASA・シロスタゾールへの一時変更も選択肢（JGES 2017）。'};
     let hold='';
@@ -419,7 +422,7 @@ function drugRec(id){
     if(r==='low'&&!lp) return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'低出血リスク手技のため継続。'};
     const hold=gi?'1日前（JGES 2017最短）':'2〜3日前';
     if(tap===true) return{badge:'処方科と協議',cls:'a-cons',hold:'2〜3日前（処方科と協議の上決定）',restart:'手術翌日',note:'高血栓リスクの場合は処方科と協議すること。'};
-    if(anestMid) return{badge:'休薬',cls:'a-hold',hold:'2〜3日前',restart:'カテーテル抜去後6時間以上経過後から再開',note:'区域麻酔（中リスク以上のブロック）における管理。'};
+    if(anestMid) return{badge:'原則継続',cls:'a-cont',hold:'休薬は必須ではない\n（休薬が適当と判断される場合：2日前）',restart:'手術翌日（止血確認後）',note:'【2026年版区域麻酔GL】シロスタゾールは休薬を支持するエビデンスがないため、脊髄幹麻酔・深部の神経ブロックの実施前の休薬は必須ではない（表9に休薬日数の提案なし）。\n出血リスクが高いと判断され休薬が適当な症例では、2日間の休薬期間を目安とする。'};
     return{badge:'休薬',cls:'a-hold',hold,restart:'手術翌日（止血確認後）',note:null};
   }
 
@@ -430,7 +433,7 @@ function drugRec(id){
       return{badge:'継続',cls:'a-cont',hold:null,restart:null,note:'低出血リスク手技のため休薬不要。術前PT-INR測定を行い、INR>3.0の場合は処方科に連絡。'};
     }
     if(anestMid){
-      return{badge:'休薬',cls:'a-hold',hold:'3〜5日前中止。ブロック前にPT-INR ≤ 1.2 を確認',restart:'カテーテル抜去後 0時間（抜去直後から再開可）',note:'【2026年版区域麻酔GL 表9】中リスク以上のブロック前およびカテーテル抜去前にPT-INR ≤ 1.2 を確認すること。\n※前版（2016年）の基準 INR≤1.5 から変更されています。\n術後の初回投与は穿刺から12時間以上後。'+(lp?'\n腰椎穿刺ではINR<1.4を目安とすることが望ましい（Pract Neurol 2018）。':'')};
+      return{badge:'休薬',cls:'a-hold',hold:'5日前に中止。ブロック前にPT-INR ≤ 1.2 を確認',restart:'カテーテル抜去後 0時間（抜去直後から再開可）',note:'【2026年版区域麻酔GL 表9】休薬期間は5日間（ビタミンK依存性凝固因子の活性が正常域に復帰する期間）。\nブロック実施前およびカテーテル抜去前にPT-INR ≤ 1.2 であることを確認することが望ましい。\n※前版（2016年）の基準 INR≤1.5 から変更されています。\n術後の初回投与は穿刺から12時間以上後。'+(lp?'\n腰椎穿刺ではINR<1.4を目安とすることが望ましい（Pract Neurol 2018）。':'')};
     }
     if(tac===true){
       return{badge:'休薬＋ブリッジング考慮',cls:'a-cons',hold:'3〜5日前（INR<1.5まで）',restart:'手術翌日からワルファリン再開。INR治療域回復後ヘパリン中止。',note:'血栓塞栓症高リスク群。必ず処方科と協議の上ブリッジング療法を検討。\n①ワルファリン中止3〜5日前（INR<1.5まで）\n②UFH静注（術前6〜12時間前中止）またはLMWH（術前24時間前中止）\n③手術翌日からワルファリン再開'};

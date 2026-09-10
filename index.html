@@ -89,6 +89,16 @@ body{font-family:'Meiryo','Yu Gothic',sans-serif;background:#f0f4f8;color:#1a1a2
 .new-btn:hover{background:#1F3864}
 .foot{font-size:11px;color:#aaa;text-align:center;margin-top:16px;line-height:1.8}
 </style>
+<!-- 利用状況の計測（GoatCounter）
+     ・Cookieを使用せず、個人を特定する情報は保存しません
+     ・読み込みに失敗してもアプリの動作には影響しません（下のtrack関数で保護）
+     ・GC_SITE を自院のGoatCounterサブドメイン名に書き換えてください -->
+<script>
+  var GC_SITE = 'kocmc-antithrombotic';   // ← GoatCounterで取得したサブドメイン名
+</script>
+<script data-goatcounter-settings='{"allow_local":false}'
+        data-goatcounter="https://kocmc-antithrombotic.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
 <div id="app"></div>
@@ -699,11 +709,32 @@ function toggleDrug(id){
   S.drugs=S.drugs.includes(id)?S.drugs.filter(x=>x!==id):[...S.drugs,id];
   render();
 }
-function go(step){S.step=step;render();window.scrollTo(0,0);}
-function selDept(i){S.deptIdx=i;S.procIdx=null;S.extra={tap:null,tac:null,crcl:null,dose:null,plt:null};go('proc');}
+// 利用状況の記録。個人・患者を特定する情報は一切送信しない。
+// 計測サービスが読み込めない環境（院内ネットワークの制限・オフライン等）でも
+// 例外を握りつぶしてアプリの動作を止めないようにしている。
+function track(path,title){
+  try{
+    if(window.goatcounter&&typeof window.goatcounter.count==='function'){
+      window.goatcounter.count({path:path,title:title,event:true});
+    }
+  }catch(e){/* 計測失敗は無視する */}
+}
+
+function go(step){
+  S.step=step;
+  if(step==='result') track('result/到達','推奨結果の表示');
+  render();window.scrollTo(0,0);
+}
+function selDept(i){
+  S.deptIdx=i;S.procIdx=null;S.extra={tap:null,tac:null,crcl:null,dose:null,plt:null};
+  track('dept/'+deptNames[i],'診療科の選択');
+  go('proc');
+}
 function selProc(i){
   S.procIdx=i;
   S.extra={tap:null,tac:null,crcl:null,dose:null,plt:null};
+  const g=buildGroups().find(x=>x.idx===i);
+  if(g) track('risk/'+g.label,'リスク区分の選択');
   go(getQs().length>0?'extra':'result');
 }
 function setE(k,v){S.extra[k]=v;render();}
